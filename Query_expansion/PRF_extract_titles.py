@@ -11,20 +11,17 @@ with open(path, 'r', encoding = 'utf-8') as file:
 df.columns = ['topicID', 'docID', 'score']
 topics = df.groupby('topicID')
 
-files = []
+files = {}
 topic= arange (1, 41, 1)
 #final_dict = {}
 for i in topic:
     try:
     #print((topics.get_group(i).head(20)))
-        files.append((topics.get_group(i).head(25)['docID']))
+        files[i]=list(topics.get_group(i).head(25)['docID']) 
     except:
         print(i)
-files2 = []
-for i in files:
-    files2.append(list(i.values))
 
-res = dict(zip(topic, files2))
+
 import io
 
 with io.open(
@@ -32,25 +29,22 @@ with io.open(
         "w", encoding="utf-8") as f:
     count = 1
     final_result = {}
-    for key, value in res.items():
+    for key, value in files.items():
         brief_titles = []
         for fname in value:
             xml_files = glob.glob(
                 r'C:\Users\huyen\OneDrive - UNT System\A_PhD_PATH\TREC_Summer2021\data\TREC-2019\clinical_trials*\\*\\' + fname + ".xml",
                 recursive=True)
             # print(xml_files)
-            try:
-                tree = ET.parse(xml_files[0])
-                root = tree.getroot()
-                result = {}
-                brief_titles.append(root[2].text)
-                titles = ','.join(brief_titles)
-                result[key] = titles
-                print('{} | {}'.format(key, titles), file=f)
-                final_result.update(result)
-            except:
-                print(fname)
-
+               tree = ET.parse(xml_files[0])
+               root = tree.getroot()
+               result = {}
+               brief_titles.append(root[2].text)
+               titles = ','.join(brief_titles)
+               result[key] = titles
+               print('{} | {}'.format(key, titles), file=f)
+               final_result.update(result)
+      
 for key, value in final_result.items():
     print(key, value)
 
