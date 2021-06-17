@@ -1,5 +1,4 @@
-# Loading the Query [2016/2021]
-## Query 2016
+
 # Loading the Query [2016/2021]
 ## Query 2016
 import pandas as pd
