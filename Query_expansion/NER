@@ -1,0 +1,79 @@
+# Loading the Query [2016/2021]
+## Query 2016
+import pandas as pd
+import xml.etree.ElementTree as ET
+
+tree = ET.parse(r"C:\Users\huyen\OneDrive - UNT System\A_PhD_PATH\TREC_Summer2021\data\topics2016.xml")
+root = tree.getroot()
+
+queryID, note, description, summary=[],[],[], []
+
+ 
+i=0
+while i<len(root):
+    queryID.append(i+1)
+    for j in range (len(root[i])):
+        if root[i][j].tag == 'note':
+            note.append(root[i][j].text.replace('\n',''))
+        if root[i][j].tag == 'summary':
+            summary.append(root[i][j].text)
+        if root[i][j].tag == 'description':
+            description.append(root[i][j].text)
+  
+    i+=1
+    
+df = pd.DataFrame(zip(queryID, note, description, summary), columns =['queryID', 'note', 'description', 'summary'] )
+df.head()
+
+import pandas as pd
+import requests
+
+def bern_ent_extraction(txt):
+    ent_info = query_raw(txt)
+    extracted_ents = extract_ents(txt, ent_info)
+    return extracted_ents
+
+
+
+def query_raw(text, url="https://bern.korea.ac.kr/plain"):  #https://bern.korea.ac.kr/plain
+    return requests.post(url, data={'sample_text': text}).json()
+
+
+# define functions to extract ENTs from Bern model
+
+
+# find_ent_index(ents)
+def extract_ents(txt, ents_info):
+    ent_index = {}
+    ent = {}
+    for k, v in ents_info['logits'].items():
+        if v:
+            l = [v[0][0]["start"], v[0][0]["end"]]
+            tup = tuple(l)
+            ent_index[k] = tup    
+    for k, v in ent_index.items():
+        ent[k] = txt[v[0]:v[1]]
+    return ent
+
+
+
+
+if __name__ == '__main__':
+    print(bern_ent_extraction("A 78 year old male presents with frequent stools and melena."))
+    
+
+def DFextr (frame):
+    ents = []
+    for text in frame:
+        ents.append(bern_ent_extraction(text))
+    return ents
+
+df['summary_NER'] = DFextr(df['summary'])
+df['note_NER'] = DFextr(df['note'])
+df['description_NER'] = DFextr(df['description'])
+
+with open (r"C:\Users\huyen\OneDrive - UNT System\A_PhD_PATH\TREC_Summer2021\RESULTS\Query processing\Raw_Query_Processing\2016\NER_Extr\NER-BERN_Query2016_all-dic.csv", 'w', encoding = 'utf-8', newline = '') as file:
+    df.to_csv(file)
+df   
+   
+
